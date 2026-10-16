@@ -1,4 +1,3 @@
-
 name: Trigger Byzan Converter
 
 on:
@@ -6,17 +5,22 @@ on:
   repository_dispatch:
     types: [trigger_byzan_converter]
 
+permissions:
+  contents: read
+
 jobs:
-  trigger:
+  create-trigger-file:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Trigger Byzan-Systems Workflow
+      - name: Create trigger file in Byzan Systems
         env:
           GH_TOKEN: ${{ secrets.BYZAN_DISPATCH_TOKEN }}
         run: |
-          curl --fail-with-body --request POST \
-            --url "https://api.github.com/repos/Byzan-Systems/017TJ0027/dispatches" \
-            --header "Accept: application/vnd.github+json" \
-            --header "Authorization: Bearer $GH_TOKEN" \
-            --header "X-GitHub-Api-Version: 2022-11-28" \
-            --data '{"event_type":"Test_automation"}'
+          gh api \
+            --method PUT \
+            repos/Byzan-Systems/017TJ0027/contents/TRIGGER/execute.txt \
+            -f message="Trigger converter workflow" \
+            -f content="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+            -f branch="main" \
+            -f sha="$(gh api repos/Byzan-Systems/017TJ0027/contents/TRIGGER/execute.txt --jq .sha 2>/dev/null || true)"
